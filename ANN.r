@@ -1,6 +1,5 @@
 layer_size <- 4
-learning_rate <- 0.002
-neuron_size <- c(28 * 28, 1024, 1024, 10) + 1
+neuron_size <- c(28 * 28, 200, 200, 10) + 1
 synapse <- list()
 for (i in 2:layer_size) {
     rand_data <- rnorm(n = neuron_size[i - 1] * neuron_size[i], mean = 0, sd = 0.1)
@@ -15,7 +14,7 @@ n = readBin(pf_out, integer(), 2)[1]
 avg = 0
 tot = 0
 for (ii in 1:n) {
-    
+    learning_rate <- 0.009 * (n - ii) / n / 3 + 0.002
     vec_in <- c(readBin(pf_in, double(), m) , 1)
     ac <- list(t(as.matrix(vec_in)))
     for (i in 2:layer_size) {
@@ -31,9 +30,11 @@ for (ii in 1:n) {
     normalizer <- function(x) { x / sum(x) }
     result <- normalizer(result)
     error <- readBin(pf_out, double(), 10) 
-    error <- (result - error) * error
-    avg <- (avg * (ii - 1) + sum(error)) / ii
-    print(avg)
+    result <- result - error
+    avg <- (avg * (ii - 1) + sum(error * result)) / ii
+    error <- result
+    if (ii %% 100 == 0) print(avg)
+    if (is.nan(avg)) break
     error <- as.matrix(c(error, 0))    
 
     for (i in layer_size:2) {
@@ -41,6 +42,9 @@ for (ii in 1:n) {
 	delta <- delta + synapse[[i - 1]] * 0.0001
 	new_error = t(error) %*% t(synapse[[i - 1]]) 
 	synapse[[i - 1]] <- synapse[[i - 1]] - delta * learning_rate
+	for (j in 1:ncol(new_error)) {
+	    if (ac[[i - 1]][j] == 0) new_error[j] = 0
+	}
 	error = new_error
     	error[neuron_size[i]] = 0
 	error = t(error)
