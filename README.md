@@ -1,4 +1,4 @@
-ANN
+MNIST
 ===
-
-an neural network by R solving MNIST
+Several approach to solve MNIST
+ANN is done
