@@ -1,8 +1,5 @@
 #!/usr/bin/Rscript
-model <- read("model.txt")
-layer.size <- model$layer.size
-neuron.size <- model$neuron.size
-synapse <- model.synapse
+load("model.RData")
 
 pf.in <- file("test-images", "rb")
 pf.out <- file("test-labels", "rb")
@@ -31,8 +28,7 @@ for (ii in 1:n) {
   for (i in 2:layer.size) {
     ac.next <- ac[[i - 1]] %*% synapse[[i - 1]]
     #active function : x > 0 ? x : 0
-    rectifier <- function(x) { (abs(x) + x) * 0.5}
-    ac.next <- rectifier(ac.next)
+    ac.next <- sapply(ac.next, FUN = active.function)
     ac.next[neuron.size[i]] <- 1
     ac <- c(ac, list(ac.next))
   }
